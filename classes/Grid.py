@@ -18,7 +18,11 @@ class Grid():
         self.state_matrix = np.zeros(self.dimensions)
         self.random = random
         if random != 0:
+            self.simple = False
             self.build_expectation_matrix()
+        else:
+            self.simple = True 
+        # A simple grid has no noise perturbation, strictly deterministic, and only has adjacency movement.
         self.living_reward = living_reward
         self.data = data
         self.construct(data)
@@ -34,6 +38,7 @@ class Grid():
             self.state_matrix[state[0]][state[1]] = "W"
     
     # Get next state. Action is an integer that specifies the action taken.
+    # If deterministic, return the next_state if the random peturbation doesn't occur.
     def transition(self, state, action, deterministic=False):
         actions = self.get_actions(state)
         if np.random.random() > self.random or deterministic: # Check for random transition.
@@ -50,6 +55,7 @@ class Grid():
     def reward(self, state: tuple, action: int, next_state: tuple):
         if self.is_terminal(state):
             return 0
+        
         return self.state_matrix[state[0]][state[1]] + self.living_reward
 
     def expected_reward(self, state: tuple, action: int):
@@ -91,14 +97,18 @@ class Grid():
         answer = []
         x = state[0]
         y = state[1]
-        if y > 0 and self.state_matrix[x][y - 1] != "W":
-            answer.append((x, y - 1))
-        if x < self.x - 1 and self.state_matrix[x + 1][y] != "W":
-            answer.append((x + 1, y))
-        if y < self.y - 1 and self.state_matrix[x][y + 1] != "W":
-            answer.append((x, y + 1))
+        # North
         if x > 0 and self.state_matrix[x - 1][y] != "W":
             answer.append((x - 1, y))
+        # East
+        if y < self.y - 1 and self.state_matrix[x][y + 1] != "W":
+            answer.append((x, y + 1))
+        # South
+        if x < self.x - 1 and self.state_matrix[x + 1][y] != "W":
+            answer.append((x + 1, y))
+        # West
+        if y > 0 and self.state_matrix[x][y - 1] != "W":
+            answer.append((x, y - 1))
         return answer
 
 
